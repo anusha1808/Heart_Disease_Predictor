@@ -54,12 +54,13 @@ def home():
             prediction_result = model.predict(input_df)[0]
             probability = model.predict_proba(input_df)[0][1]
             
-            prediction = "❤️ HIGH RISK" if prediction_result == 1 else "💚 LOW RISK"
+            prediction = "HIGH RISK" if prediction_result == 1 else "LOW RISK"
             confidence = f"{probability:.1%}"
             
         except Exception as e:
-            prediction = "⚠️ ERROR"
+            prediction = "ERROR"
             confidence = str(e)
+            print(f"Error: {e}")  # Debug print
     
     return render_template('index.html', 
                          form_data=form_data,
@@ -68,6 +69,4 @@ def home():
 
 if __name__ == '__main__':
     print("\n🚀 Server starting...")
-    print("📍 Open http://127.0.0.1:5000 in your browser")
-    print("⚠️ Press CTRL+C to stop\n")
     app.run(debug=True)
