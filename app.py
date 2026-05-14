@@ -1,23 +1,109 @@
-from flask import Flask, request, render_template, jsonify
+"""
+Heart Disease Predictor - Complete Flask App with Firebase
+"""
+
+from flask import Flask, request, render_template, jsonify, session
 import joblib
 import pandas as pd
-import traceback
+import firebase_admin
+from firebase_admin import credentials, firestore
+from datetime import datetime
+import secrets
+from admin import admin_bp
 
 app = Flask(__name__)
+app.secret_key = secrets.token_hex(16)
+
+# Initialize Firebase Admin
+cred = credentials.Certificate('serviceAccountKey.json')
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
+# Register admin blueprint
+app.register_blueprint(admin_bp)
+
+# Load model
 model = joblib.load('model.pkl')
+
+# Helper function to get Firestore db
+def get_db():
+    return db
+
+# Helper function to update statistics
+def update_stats(prediction, confidence):
+    try:
+        stats_ref = db.collection('stats').document('summary')
+        stats = stats_ref.get().to_dict() or {}
+        
+        total = stats.get('total_predictions', 0) + 1
+        high_risk = stats.get('high_risk_count', 0) + (1 if prediction == 'HIGH RISK' else 0)
+        low_risk = stats.get('low_risk_count', 0) + (1 if prediction == 'LOW RISK' else 0)
+        
+        # Calculate running average of confidence
+        old_avg = stats.get('avg_confidence', 0)
+        old_total = stats.get('total_predictions', 0)
+        new_avg = (old_avg * old_total + confidence) / total if total > 0 else confidence
+        
+        stats_ref.set({
+            'total_predictions': total,
+            'high_risk_count': high_risk,
+            'low_risk_count': low_risk,
+            'avg_confidence': new_avg,
+            'last_updated': firestore.SERVER_TIMESTAMP
+        })
+    except Exception as e:
+        print(f"Stats update error: {e}")
+
+def generate_patient_id(form_data, timestamp):
+    """Generate meaningful patient ID"""
+    # Option 1: Timestamp-based (simple)
+    patient_id = f"PAT-{timestamp.strftime('%Y%m%d%H%M%S')}-{hash(str(form_data)) % 10000:04d}"
+    
+    return patient_id
+
+# # Helper function to save prediction to Firebase
+def save_to_firebase(form_data, prediction, prediction_code, confidence, ip_address):
+    try:
+        timestamp = datetime.now()
+        patient_id = generate_patient_id(form_data, timestamp)
+        
+        doc_ref = db.collection('predictions').document(patient_id).set({
+            'patient_id': patient_id,
+            'timestamp': timestamp,
+            'age': form_data.get('age'),
+            'sex': form_data.get('sex'),
+            'cp': form_data.get('cp'),
+            'trestbps': form_data.get('trestbps'),
+            'chol': form_data.get('chol'),
+            'fbs': form_data.get('fbs'),
+            'restecg': form_data.get('restecg'),
+            'thalch': form_data.get('thalch'),
+            'exang': form_data.get('exang'),
+            'oldpeak': form_data.get('oldpeak'),
+            'slope': form_data.get('slope'),
+            'ca': form_data.get('ca'),
+            'thal': form_data.get('thal'),
+            'prediction': prediction,
+            'prediction_code': prediction_code,
+            'confidence': confidence,
+            'ip_address': ip_address
+        })
+        print(f"Saved prediction for patient: {patient_id}")
+        update_stats(prediction, confidence)
+        return True
+    except Exception as e:
+        print(f"Firebase save error: {e}")
+        return False
 
 # Helper function for input validation
 def validate_input(data):
-    """Validate all required fields and data types"""
     required_fields = ['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 
                       'restecg', 'thalch', 'exang', 'oldpeak', 'slope', 'ca', 'thal']
     
-    # Check missing fields
-    missing = [field for field in required_fields if field not in data]
-    if missing:
+    missing = [field for field in required_fields if field not in data and data.get(field) is not None]
+    if missing and len(missing) > 0:
         return False, f"Missing fields: {missing}"
     
-    # Validate age
     try:
         age = float(data['age'])
         if age < 0 or age > 120:
@@ -25,7 +111,6 @@ def validate_input(data):
     except (ValueError, TypeError):
         return False, "Age must be a number"
     
-    # Validate trestbps (blood pressure)
     try:
         trestbps = float(data['trestbps'])
         if trestbps < 50 or trestbps > 250:
@@ -33,7 +118,6 @@ def validate_input(data):
     except (ValueError, TypeError):
         return False, "Blood pressure must be a number"
     
-    # Validate cholesterol
     try:
         chol = float(data['chol'])
         if chol < 100 or chol > 600:
@@ -41,7 +125,6 @@ def validate_input(data):
     except (ValueError, TypeError):
         return False, "Cholesterol must be a number"
     
-    # Validate thalch (max heart rate)
     try:
         thalch = float(data['thalch'])
         if thalch < 60 or thalch > 220:
@@ -49,15 +132,6 @@ def validate_input(data):
     except (ValueError, TypeError):
         return False, "Max heart rate must be a number"
     
-    # Validate ca (major vessels)
-    try:
-        ca = float(data['ca'])
-        if ca < 0 or ca > 3:
-            return False, "Major vessels must be between 0 and 3"
-    except (ValueError, TypeError):
-        return False, "Major vessels must be a number"
-    
-    # Validate categorical values
     valid_sex = ['Male', 'Female']
     if data['sex'] not in valid_sex:
         return False, f"Sex must be one of {valid_sex}"
@@ -66,25 +140,9 @@ def validate_input(data):
     if data['cp'] not in valid_cp:
         return False, f"Chest pain type must be one of {valid_cp}"
     
-    valid_fbs = ['false', 'true']
-    if data['fbs'] not in valid_fbs:
-        return False, f"FBS must be one of {valid_fbs}"
-    
-    valid_exang = ['false', 'true']
-    if data['exang'] not in valid_exang:
-        return False, f"Exercise angina must be one of {valid_exang}"
-    
-    valid_slope = ['upsloping', 'flat', 'downsloping']
-    if data['slope'] not in valid_slope:
-        return False, f"Slope must be one of {valid_slope}"
-    
-    valid_thal = ['normal', 'fixed defect', 'reversible defect']
-    if data['thal'] not in valid_thal:
-        return False, f"Thalassemia must be one of {valid_thal}"
-    
     return True, "Valid"
 
-# Web route (existing)
+# Web route
 @app.route('/', methods=['GET', 'POST'])
 def home():
     form_data = {}
@@ -93,7 +151,6 @@ def home():
     
     if request.method == 'POST':
         try:
-            # Get form data
             form_data = {
                 'age': request.form.get('age', ''),
                 'sex': request.form.get('sex', 'Male'),
@@ -110,7 +167,6 @@ def home():
                 'thal': request.form.get('thal', 'normal')
             }
             
-            # Prepare features for prediction
             features = {
                 'age': float(form_data['age']),
                 'sex': form_data['sex'],
@@ -127,15 +183,16 @@ def home():
                 'thal': form_data['thal']
             }
             
-            # Convert to DataFrame
             input_df = pd.DataFrame([features])
-            
-            # Predict
-            prediction_result = model.predict(input_df)[0]
-            probability = model.predict_proba(input_df)[0][1]
+            prediction_result = int(model.predict(input_df)[0])
+            probability = float(model.predict_proba(input_df)[0][1])
             
             prediction = "HIGH RISK" if prediction_result == 1 else "LOW RISK"
             confidence = f"{probability:.1%}"
+            
+            # Save to Firebase
+            ip = request.remote_addr
+            save_to_firebase(form_data, prediction, prediction_result, probability, ip)
             
         except Exception as e:
             prediction = "ERROR"
@@ -147,24 +204,18 @@ def home():
                          prediction=prediction, 
                          confidence=confidence)
 
-# NEW: REST API endpoint (Phase 3)
+# REST API endpoint
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
-    """
-    REST API endpoint for prediction
-    Accepts JSON, returns JSON
-    """
     try:
-        # Get JSON data from request
         data = request.get_json()
         
         if not data:
             return jsonify({
                 'status': 'error',
-                'message': 'No JSON data provided. Please send JSON with patient data.'
+                'message': 'No JSON data provided'
             }), 400
         
-        # Validate input
         is_valid, message = validate_input(data)
         if not is_valid:
             return jsonify({
@@ -172,7 +223,6 @@ def api_predict():
                 'message': message
             }), 400
         
-        # Prepare features
         features = {
             'age': float(data['age']),
             'sex': data['sex'],
@@ -189,14 +239,16 @@ def api_predict():
             'thal': data['thal']
         }
         
-        # Convert to DataFrame
         input_df = pd.DataFrame([features])
-        
-        # Predict
         prediction_result = int(model.predict(input_df)[0])
         probability = float(model.predict_proba(input_df)[0][1])
         
-        # Return JSON response
+        # Save to Firebase
+        form_data = {k: str(v) for k, v in data.items()}
+        prediction_text = "HIGH RISK" if prediction_result == 1 else "LOW RISK"
+        ip = request.remote_addr
+        save_to_firebase(form_data, prediction_text, prediction_result, probability, ip)
+        
         return jsonify({
             'status': 'success',
             'prediction': 'High Risk' if prediction_result == 1 else 'Low Risk',
@@ -213,25 +265,38 @@ def api_predict():
     except Exception as e:
         return jsonify({
             'status': 'error',
-            'message': str(e),
-            'traceback': traceback.format_exc()
+            'message': str(e)
         }), 500
 
-# Optional: GET endpoint to check API health
+# Health check
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    return jsonify({
-        'status': 'healthy',
-        'model_loaded': True,
-        'endpoints': ['/ (web)', '/api/predict (POST)', '/api/health (GET)']
-    })
+    try:
+        stats_ref = db.collection('stats').document('summary')
+        stats = stats_ref.get().to_dict() or {}
+        return jsonify({
+            'status': 'healthy',
+            'model_loaded': True,
+            'database': 'Firebase Firestore',
+            'predictions_stored': stats.get('total_predictions', 0),
+            'endpoints': ['/ (web)', '/api/predict (POST)', '/api/health (GET)', '/admin/dashboard']
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'degraded',
+            'error': str(e)
+        }), 500
 
 if __name__ == '__main__':
-    print("\n" + "="*50)
-    print("SERVER STARTING")
-    print("="*50)
-    print("Web interface: http://127.0.0.1:5000/")
-    print("API endpoint: http://127.0.0.1:5000/api/predict")
-    print("API health check: http://127.0.0.1:5000/api/health")
-    print("="*50 + "\n")
-    app.run(debug=True)
+    print("\n" + "="*60)
+    print("HEART DISEASE PREDICTOR - FIREBASE DEPLOYMENT")
+    print("="*60)
+    print("Web Interface: http://127.0.0.1:5000/")
+    print("API Endpoint: http://127.0.0.1:5000/api/predict")
+    print("Health Check: http://127.0.0.1:5000/api/health")
+    print("Admin Login: http://127.0.0.1:5000/admin/login")
+    print("\nAdmin Credentials:")
+    print("  Email: admin@heartpredictor.com")
+    print("  Password: admin123")
+    print("="*60 + "\n")
+    app.run(debug=True, host='0.0.0.0', port=5000)
