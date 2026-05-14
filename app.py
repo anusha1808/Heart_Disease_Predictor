@@ -199,7 +199,7 @@ def home():
                 confidence_percent = probability
             else:
                 confidence_percent = 1 - probability
-            confidence = f"{tconfidence_percent:.1%}"
+            confidence = f"{confidence_percent:.1%}"
                         
             # Save to Firebase
             ip = request.remote_addr
