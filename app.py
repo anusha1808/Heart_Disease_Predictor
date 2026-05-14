@@ -10,12 +10,19 @@ from firebase_admin import credentials, firestore
 from datetime import datetime
 import secrets
 from admin import admin_bp
+import os
+import json
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
-# Initialize Firebase Admin
-cred = credentials.Certificate('serviceAccountKey.json')
+firebase_creds = os.environ.get('FIREBASE_CREDENTIALS')
+if firebase_creds:
+    cred_dict = json.loads(firebase_creds)
+    cred = credentials.Certificate(cred_dict)
+else:
+    # For local development only
+    cred = credentials.Certificate('serviceAccountKey.json')
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -192,7 +199,7 @@ def home():
                 confidence_percent = probability
             else:
                 confidence_percent = 1 - probability
-            confidence = f"{confidence_percent:.1%}"
+            confidence = f"{tconfidence_percent:.1%}"
                         
             # Save to Firebase
             ip = request.remote_addr
