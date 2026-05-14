@@ -188,11 +188,15 @@ def home():
             probability = float(model.predict_proba(input_df)[0][1])
             
             prediction = "HIGH RISK" if prediction_result == 1 else "LOW RISK"
-            confidence = f"{probability:.1%}"
-            
+            if prediction_result == 1:
+                confidence_percent = probability
+            else:
+                confidence_percent = 1 - probability
+            confidence = f"{confidence_percent:.1%}"
+                        
             # Save to Firebase
             ip = request.remote_addr
-            save_to_firebase(form_data, prediction, prediction_result, probability, ip)
+            save_to_firebase(form_data, prediction, prediction_result, confidence_percent, ip)
             
         except Exception as e:
             prediction = "ERROR"
@@ -243,18 +247,27 @@ def api_predict():
         prediction_result = int(model.predict(input_df)[0])
         probability = float(model.predict_proba(input_df)[0][1])
         
-        # Save to Firebase
+        # Calculate confidence for the predicted class (ONCE)
+        if prediction_result == 1:
+            prediction_text = "HIGH RISK"
+            display_text = "High Risk"
+            confidence_value = probability
+        else:
+            prediction_text = "LOW RISK"
+            display_text = "Low Risk"
+            confidence_value = 1 - probability
+        
+        # Save to Firebase with correct confidence
         form_data = {k: str(v) for k, v in data.items()}
-        prediction_text = "HIGH RISK" if prediction_result == 1 else "LOW RISK"
         ip = request.remote_addr
-        save_to_firebase(form_data, prediction_text, prediction_result, probability, ip)
+        save_to_firebase(form_data, prediction_text, prediction_result, confidence_value, ip)
         
         return jsonify({
             'status': 'success',
-            'prediction': 'High Risk' if prediction_result == 1 else 'Low Risk',
+            'prediction': display_text,
             'prediction_code': prediction_result,
-            'confidence': round(probability, 3),
-            'confidence_percentage': f"{probability:.1%}",
+            'confidence': round(confidence_value, 3),
+            'confidence_percentage': f"{confidence_value:.1%}",
             'input_received': {
                 'age': data['age'],
                 'sex': data['sex'],
@@ -267,7 +280,8 @@ def api_predict():
             'status': 'error',
             'message': str(e)
         }), 500
-
+    
+    
 # Health check
 @app.route('/api/health', methods=['GET'])
 def health_check():

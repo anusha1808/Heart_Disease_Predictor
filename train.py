@@ -9,9 +9,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc, roc_auc_score
 import joblib
+import warnings
 import matplotlib.pyplot as plt
 import seaborn as sns
-import warnings
 warnings.filterwarnings('ignore')
 
 print("="*70)
@@ -75,7 +75,7 @@ log_reg_params = {
 
 log_reg_pipeline = Pipeline([
     ('preprocessor', preprocessor),
-    ('classifier', LogisticRegression(random_state=42, max_iter=1000))
+    ('classifier', LogisticRegression(random_state=42, max_iter=1000, class_weight='balanced'))
 ])
 
 log_reg_grid = GridSearchCV(
@@ -99,7 +99,7 @@ rf_params = {
 
 rf_pipeline = Pipeline([
     ('preprocessor', preprocessor),
-    ('classifier', RandomForestClassifier(random_state=42))
+    ('classifier', RandomForestClassifier(random_state=42, class_weight='balanced'))
 ])
 
 rf_grid = GridSearchCV(
@@ -123,7 +123,7 @@ svm_params = {
 
 svm_pipeline = Pipeline([
     ('preprocessor', preprocessor),
-    ('classifier', SVC(random_state=42, probability=True))
+    ('classifier', SVC(random_state=42, probability=True, class_weight='balanced'))
 ])
 
 svm_grid = GridSearchCV(
