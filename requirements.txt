@@ -7,3 +7,4 @@ firebase-admin==6.4.0
 pyrebase4==4.5.0
 matplotlib==3.7.2
 seaborn==0.12.2
+python-dotenv==1.0.0
