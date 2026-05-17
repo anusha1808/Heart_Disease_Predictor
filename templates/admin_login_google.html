@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Secure Access</h1>
+        <p>Sign in with your authorized Google account</p>
+        
+        <button class="google-btn" id="googleSignIn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+            Sign in with Google
+        </button>
+        
+        <div class="error" id="errorMessage"></div>
+        
+        <div class="info">
+            Only authorized medical professionals can access this portal.
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "{{ firebase_config.apiKey }}",
+            authDomain: "{{ firebase_config.authDomain }}",
+            projectId: "{{ firebase_config.projectId }}",
+            storageBucket: "{{ firebase_config.storageBucket }}",
+            messagingSenderId: "{{ firebase_config.messagingSenderId }}",
+            appId: "{{ firebase_config.appId }}"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        
+        const errorDiv = document.getElementById('errorMessage');
+        
+        document.getElementById('googleSignIn').addEventListener('click', async () => {
+            errorDiv.style.display = 'none';
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            try {
+                const result = await firebase.auth().signInWithPopup(provider);
+                const idToken = await result.user.getIdToken();
+                
+                const response = await fetch('/admin/google-auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_token: idToken })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    window.location.href = data.redirect;
+                } else {
+                    errorDiv.textContent = data.message || 'Unauthorized access';
+                    errorDiv.style.display = 'block';
+                    await firebase.auth().signOut();
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Authentication failed: ' + error.message;
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

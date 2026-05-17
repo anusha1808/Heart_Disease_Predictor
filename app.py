@@ -2,7 +2,7 @@
 Heart Disease Predictor - Complete Flask App with Firebase
 """
 
-from flask import Flask, request, render_template, jsonify, session
+from flask import Flask, request, render_template, jsonify, session, redirect
 import joblib
 import pandas as pd
 import firebase_admin
@@ -12,17 +12,29 @@ import secrets
 from admin import admin_bp
 import os
 import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
-firebase_creds = os.environ.get('FIREBASE_CREDENTIALS')
-if firebase_creds:
-    cred_dict = json.loads(firebase_creds)
-    cred = credentials.Certificate(cred_dict)
-else:
-    # For local development only
+# Initialize Firebase Admin (Backend)
+if os.path.exists('serviceAccountKey.json'):
     cred = credentials.Certificate('serviceAccountKey.json')
+    print("Firebase initialized from local file (serviceAccountKey.json)")
+else:
+    # Then check for environment variable (production)
+    firebase_creds_str = os.environ.get('FIREBASE_ADMIN_SDK_JSON')
+    if firebase_creds_str:
+        cred_dict = json.loads(firebase_creds_str)
+        cred = credentials.Certificate(cred_dict)
+        print("Firebase initialized from environment variable")
+    else:
+        print("ERROR: No Firebase credentials found")
+        raise Exception("Missing Firebase credentials")
+
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -73,6 +85,8 @@ def save_to_firebase(form_data, prediction, prediction_code, confidence, ip_addr
     try:
         timestamp = datetime.now()
         patient_id = generate_patient_id(form_data, timestamp)
+        created_by_email = session.get('admin_email', 'unknown')
+        created_by_name = session.get('user_name', 'Unknown')
         
         doc_ref = db.collection('predictions').document(patient_id).set({
             'patient_id': patient_id,
@@ -93,7 +107,9 @@ def save_to_firebase(form_data, prediction, prediction_code, confidence, ip_addr
             'prediction': prediction,
             'prediction_code': prediction_code,
             'confidence': confidence,
-            'ip_address': ip_address
+            'ip_address': ip_address,
+            'created_by_email': created_by_email,
+            'created_by_name': created_by_name
         })
         print(f"Saved prediction for patient: {patient_id}")
         update_stats(prediction, confidence)
@@ -152,6 +168,10 @@ def validate_input(data):
 # Web route
 @app.route('/', methods=['GET', 'POST'])
 def home():
+
+    if not session.get('admin_logged_in'):
+        return redirect('/login')
+     
     form_data = {}
     prediction = None
     confidence = None
@@ -313,11 +333,5 @@ if __name__ == '__main__':
     print("HEART DISEASE PREDICTOR - FIREBASE DEPLOYMENT")
     print("="*60)
     print("Web Interface: http://127.0.0.1:5000/")
-    print("API Endpoint: http://127.0.0.1:5000/api/predict")
-    print("Health Check: http://127.0.0.1:5000/api/health")
-    print("Admin Login: http://127.0.0.1:5000/admin/login")
-    print("\nAdmin Credentials:")
-    print("  Email: admin@heartpredictor.com")
-    print("  Password: admin123")
     print("="*60 + "\n")
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -2,55 +2,34 @@
 <html>
 <head>
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Arial; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { color: #667eea; margin-bottom: 5px; }
-        .subtitle { color: #666; margin-bottom: 20px; }
-        .stats { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
-        .stat-card { background: white; padding: 20px; border-radius: 10px; text-align: center; flex: 1; min-width: 150px; }
-        .stat-number { font-size: 32px; font-weight: bold; color: #667eea; }
-        .stat-label { color: #666; margin-top: 5px; }
-        .chart-row { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
-        .chart-card { background: white; border-radius: 10px; padding: 20px; flex: 1; min-width: 300px; }
-        .chart-card h3 { margin-bottom: 15px; color: #333; }
-        .full-width { margin-bottom: 30px; }
-        .table-container { background: white; border-radius: 10px; padding: 20px; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
-        th { background: #667eea; color: white; }
-        tr:hover { background: #f5f5f5; }
-        .high-risk { color: #ff6b6b; font-weight: bold; }
-        .low-risk { color: #51cf66; font-weight: bold; }
-        .btn { padding: 10px 20px; border: none; border-radius: 5px; text-decoration: none; display: inline-block; margin-top: 20px; margin-right: 10px; }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-danger { background: #ff6b6b; color: white; }
-        .footer { margin-top: 20px; text-align: center; color: #888; }
-    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Admin Dashboard</h1>
-        <p class="subtitle">Logged in as: {{ email }}</p>
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <p>Welcome, {{ name }}</p>
+            <p>Email: {{ email }}</p>
+        </div>
         
         <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number">{{ total_predictions }}</div>
-                <div class="stat-label">Total Predictions</div>
+            <div class="stats-number">{{ total_predictions }}</div>
+            <div>Total Predictions</div>
+        </div>
+        
+        <div class="stats-row">
+            <div class="stats-card" style="background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);">
+                <div class="stats-number">{{ high_risk_count }}</div>
+                <div>High Risk Cases</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" style="color: #ff6b6b;">{{ high_risk_count }}</div>
-                <div class="stat-label">High Risk Cases</div>
+            <div class="stats-card" style="background: linear-gradient(135deg, #51cf66 0%, #2f9e44 100%);">
+                <div class="stats-number">{{ low_risk_count }}</div>
+                <div>Low Risk Cases</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" style="color: #51cf66;">{{ low_risk_count }}</div>
-                <div class="stat-label">Low Risk Cases</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">{{ avg_confidence_percent }}%</div>
-                <div class="stat-label">Avg Confidence</div>
+            <div class="stats-card">
+                <div class="stats-number">{{ avg_confidence_percent }}%</div>
+                <div>Avg Confidence</div>
             </div>
         </div>
         
@@ -70,8 +49,9 @@
             <canvas id="trendChart" width="800" height="300"></canvas>
         </div>
         
-        <div class="table-container">
-            <h3>Recent Predictions</h3>
+        <h2>Recent Predictions (Last 5)</h2>
+        
+        <div style="overflow-x: auto; margin-top: 15px;">
             <table>
                 <thead>
                     <tr>
@@ -81,17 +61,21 @@
                         <th>Sex</th>
                         <th>Prediction</th>
                         <th>Confidence</th>
+                        <th>Doctor</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for pred in predictions %}
+                    {% for pred in predictions[:5] %}
                     <tr>
-                        <td>{{ pred.patient_id[:12] }}...</td>
+                        <td>{{ pred.patient_id }}</td>
                         <td>{{ pred.time }}</td>
                         <td>{{ pred.age }}</td>
                         <td>{{ pred.sex }}</td>
                         <td class="{% if pred.prediction == 'HIGH RISK' %}high-risk{% else %}low-risk{% endif %}">{{ pred.prediction }}</td>
                         <td>{{ "%.1f"|format(pred.confidence * 100) }}%</td>
+                        <td>{{ pred.doctor_name }}</td>
+                        <td><a href="/admin/patient/{{ pred.patient_id }}" style="color: #667eea;">View Details</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -99,9 +83,10 @@
         </div>
         
         <div>
-            <a href="/admin/export" class="btn btn-primary">Export CSV</a>
-            <a href="/admin/logout" class="btn btn-danger">Logout</a>
-            <a href="/" class="btn btn-primary">Back to Home</a>
+            <a href="/admin/export" class="btn">Export CSV</a>
+            <a href="/admin/history" class="btn">View All History</a>
+            <a href="/" class="btn">Back to Predictor</a>
+            <a href="/logout" class="btn btn-danger">Logout</a>
         </div>
         
         <div class="footer">

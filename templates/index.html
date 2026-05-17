@@ -4,151 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heart Disease Predictor</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-        .header p {
-            opacity: 0.9;
-        }
-        .form-container {
-            padding: 30px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        button {
-            flex: 1;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        button:hover {
-            transform: translateY(-2px);
-        }
-        .clear-btn {
-            background: linear-gradient(135deg, #868e96 0%, #495057 100%);
-        }
-        .result {
-            margin-top: 30px;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            animation: fadeIn 0.5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .high-risk {
-            background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
-            color: white;
-        }
-        .low-risk {
-            background: linear-gradient(135deg, #51cf66 0%, #2f9e44 100%);
-            color: white;
-        }
-        .error {
-            background: linear-gradient(135deg, #ffd43b 0%, #e67700 100%);
-            color: white;
-        }
-        .result h2 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        .result p {
-            font-size: 18px;
-            opacity: 0.95;
-        }
-        .info {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
-            text-align: center;
-        }
-        .admin-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 12px;
-        }
-        .admin-link:hover {
-            background: #5a67d8;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Heart Disease Risk Predictor</h1>
-            <p>Enter your medical information for risk assessment</p>
+            <p>Enter medical information for risk assessment</p>
         </div>
         
         <div class="form-container">
@@ -156,7 +18,7 @@
                 <div class="row">
                     <div class="form-group">
                         <label>Age (years)</label>
-                        <input type="number" name="age" value="{{ form_data.age if form_data.age else '' }}" required placeholder="e.g., 55">
+                        <input type="number" name="age" min="1" max="120" value="{{ form_data.age if form_data.age else '' }}" required placeholder="e.g., 55">
                     </div>
                     
                     <div class="form-group">
@@ -181,12 +43,12 @@
                 <div class="row">
                     <div class="form-group">
                         <label>Resting Blood Pressure (mm Hg)</label>
-                        <input type="number" name="trestbps" value="{{ form_data.trestbps if form_data.trestbps else '' }}" required placeholder="e.g., 130">
+                        <input type="number" name="trestbps" min="50" max="250" value="{{ form_data.trestbps if form_data.trestbps else '' }}" required placeholder="e.g., 130">
                     </div>
                     
                     <div class="form-group">
                         <label>Cholesterol (mg/dl)</label>
-                        <input type="number" name="chol" value="{{ form_data.chol if form_data.chol else '' }}" required placeholder="e.g., 240">
+                        <input type="number" name="chol" min="100" max="600" value="{{ form_data.chol if form_data.chol else '' }}" required placeholder="e.g., 240">
                     </div>
                 </div>
                 
@@ -212,7 +74,7 @@
                 <div class="row">
                     <div class="form-group">
                         <label>Max Heart Rate Achieved</label>
-                        <input type="number" name="thalch" value="{{ form_data.thalch if form_data.thalch else '' }}" required placeholder="e.g., 150">
+                        <input type="number" name="thalch" min="60" max="220" value="{{ form_data.thalch if form_data.thalch else '' }}" required placeholder="e.g., 150">
                     </div>
                     
                     <div class="form-group">
@@ -227,7 +89,7 @@
                 <div class="row">
                     <div class="form-group">
                         <label>ST Depression (oldpeak)</label>
-                        <input type="number" step="0.1" name="oldpeak" value="{{ form_data.oldpeak if form_data.oldpeak else '' }}" required placeholder="e.g., 1.5">
+                        <input type="number" step="0.1" name="oldpeak" min="0" max="10" value="{{ form_data.oldpeak if form_data.oldpeak else '' }}" required placeholder="e.g., 1.5">
                     </div>
                     
                     <div class="form-group">
@@ -273,7 +135,12 @@
                 <strong>Disclaimer:</strong> This is for educational purposes only. Not a real medical diagnosis. 
                 Always consult a healthcare professional.
                 <br><br>
-                <a href="/admin/login" class="admin-link">Admin Login</a>
+                {% if session.get('user_role') == 'admin' %}
+                    <a href="/admin/dashboard" class="admin-link">Go to Dashboard</a>
+                {% elif session.get('user_role') == 'doctor' %}
+                    <a href="/doctor/dashboard" class="admin-link">Go to Dashboard</a>
+                {% endif %}
+                <a href="/logout" class="admin-link" style="background: #ff6b6b; margin-left: 10px;">Logout</a>
             </div>
         </div>
     </div>

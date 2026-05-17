@@ -1,0 +1,54 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Arial;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.login-container {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: 400px;
+}
+h1 { color: #667eea; margin-bottom: 10px; }
+p { color: #666; margin-bottom: 30px; }
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.google-btn:hover {
+    border-color: #667eea;
+    background: #f8f9fa;
+}
+.google-btn img {
+    width: 20px;
+    margin-right: 10px;
+}
+.error {
+    color: #ff6b6b;
+    margin-top: 15px;
+    padding: 10px;
+    background: #ffe0e0;
+    border-radius: 8px;
+    display: none;
+}
+.info {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #888;
+}

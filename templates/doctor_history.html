@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Doctor History - All Predictions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/doctor_history.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Doctor History - All Predictions</h1>
+            <p>Welcome, {{ name }}</p>
+            <p>Email: {{ email }}</p>
+        </div>
+        
+        <div class="stats">
+            <strong>Total Records:</strong> {{ total }}
+        </div>
+        
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Date & Time</th>
+                        <th>Age</th>
+                        <th>Sex</th>
+                        <th>Prediction</th>
+                        <th>Confidence</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pred in predictions %}
+                    <tr>
+                        <td>{{ pred.patient_id }}</td>
+                        <td>{{ pred.time }}</td>
+                        <td>{{ pred.age }}</td>
+                        <td>{{ pred.sex }}</td>
+                        <td class="{% if pred.prediction == 'HIGH RISK' %}high-risk{% else %}low-risk{% endif %}">{{ pred.prediction }}</td>
+                        <td>{{ "%.1f"|format(pred.confidence * 100) }}%</td>
+                        <td><a href="/admin/patient/{{ pred.patient_id }}" style="color: #667eea;">View Details</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div>
+            <a href="/doctor/dashboard" class="btn">Back to Dashboard</a>
+            <a href="/" class="btn">Back to Predictor</a>
+            <a href="/logout" class="btn btn-danger">Logout</a>
+        </div>
+    </div>
+</body>
+</html>

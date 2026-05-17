@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Doctor Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/doctor_dashboard.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Doctor Dashboard</h1>
+            <p>Welcome, {{ name }}</p>
+            <p>Email: {{ email }}</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stats-number">{{ total_count }}</div>
+            <div>Total Predictions by You</div>
+        </div>
+        
+        <div class="stats-row">
+            <div class="stats-card" style="background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);">
+                <div class="stats-number">{{ high_risk_count }}</div>
+                <div>High Risk Cases</div>
+            </div>
+            <div class="stats-card" style="background: linear-gradient(135deg, #51cf66 0%, #2f9e44 100%);">
+                <div class="stats-number">{{ low_risk_count }}</div>
+                <div>Low Risk Cases</div>
+            </div>
+        </div>
+        
+        <h2>Recent Predictions (Last 5)</h2>
+        
+        <div style="overflow-x: auto; margin-top: 15px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Date & Time</th>
+                        <th>Age</th>
+                        <th>Sex</th>
+                        <th>Prediction</th>
+                        <th>Confidence</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pred in predictions %}
+                    <tr>
+                        <td>{{ pred.patient_id[:12] }}...{% if not loop.last %}{% endif %}</td>
+                        <td>{{ pred.time }}</td>
+                        <td>{{ pred.age }}</td>
+                        <td>{{ pred.sex }}</td>
+                        <td class="{% if pred.prediction == 'HIGH RISK' %}high-risk{% else %}low-risk{% endif %}">{{ pred.prediction }}</td>
+                        <td>{{ "%.1f"|format(pred.confidence * 100) }}%</td>
+                        <td><a href="/admin/patient/{{ pred.patient_id }}" style="color: #667eea;">View Details</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div>
+            <a href="/doctor/history" class="btn">View All History</a>
+            <a href="/" class="btn">Back to Predictor</a>
+            <a href="/logout" class="btn btn-danger">Logout</a>
+        </div>
+        
+        <div class="footer">
+            <p>Heart Disease Predictor - Clinical Decision Support System</p>
+        </div>
+    </div>
+</body>
+</html>

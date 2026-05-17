@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Details - {{ patient_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient_detail.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Patient Clinical Report</h1>
+            <p><strong>Patient ID:</strong> {{ patient_id }}</p>
+            <p><strong>Assessment Date:</strong> {{ timestamp }}</p>
+            <h2>Medical Professional</h2>
+            <div class="detail-row"><div class="label">Assessing Doctor:</div><div class="value">{{ data.get('created_by_name', 'Unknown') }}</div></div>
+            <h2>Demographics</h2>
+            <div class="detail-row"><div class="label">Age:</div><div class="value">{{ data.get('age', 'N/A') }} years</div></div>
+            <div class="detail-row"><div class="label">Sex:</div><div class="value">{{ data.get('sex', 'N/A') }}</div></div>
+            
+            <h2>Clinical Measurements</h2>
+            <div class="detail-row"><div class="label">Chest Pain Type:</div><div class="value">{{ data.get('cp', 'N/A') }}</div></div>
+            <div class="detail-row"><div class="label">Resting Blood Pressure:</div><div class="value">{{ data.get('trestbps', 'N/A') }} mm Hg</div></div>
+            <div class="detail-row"><div class="label">Serum Cholesterol:</div><div class="value">{{ data.get('chol', 'N/A') }} mg/dl</div></div>
+            <div class="detail-row"><div class="label">Fasting Blood Sugar > 120:</div><div class="value">{{ data.get('fbs', 'N/A') }}</div></div>
+            <div class="detail-row"><div class="label">Resting ECG:</div><div class="value">{{ data.get('restecg', 'N/A') }}</div></div>
+            <div class="detail-row"><div class="label">Max Heart Rate:</div><div class="value">{{ data.get('thalch', 'N/A') }} bpm</div></div>
+            <div class="detail-row"><div class="label">Exercise Induced Angina:</div><div class="value">{{ data.get('exang', 'N/A') }}</div></div>
+            <div class="detail-row"><div class="label">ST Depression (oldpeak):</div><div class="value">{{ data.get('oldpeak', 'N/A') }}</div></div>
+            <div class="detail-row"><div class="label">ST Segment Slope:</div><div class="value">{{ data.get('slope', 'N/A') }}</div></div>
+            <div class="detail-row"><div class="label">Major Vessels (0-3):</div><div class="value">{{ data.get('ca', 'N/A') }}</div></div>
+            <div class="detail-row"><div class="label">Thalassemia:</div><div class="value">{{ data.get('thal', 'N/A') }}</div></div>
+            
+            <h2>Prediction Result</h2>
+            <div class="detail-row"><div class="label">Risk Level:</div><div class="value"><span class="{% if data.get('prediction') == 'HIGH RISK' %}high-risk{% else %}low-risk{% endif %}">{{ data.get('prediction', 'N/A') }}</span></div></div>
+            <div class="detail-row"><div class="label">Confidence Score:</div><div class="value">{{ "%.1f"|format(data.get('confidence', 0) * 100) }}%</div></div>
+            
+            <div class="button-group">
+                <button class="btn-print" onclick="window.print()">Print Report</button>
+    
+                {% if session.get('user_role') == 'admin' %}
+                    <button class="btn-primary" onclick="window.location.href='/admin/history'">Back to History</button>
+                    <button class="btn-primary" onclick="window.location.href='/admin/dashboard'">Back to Dashboard</button>
+                {% else %}
+                    <button class="btn-primary" onclick="window.location.href='/doctor/history'">Back to History</button>
+                    <button class="btn-primary" onclick="window.location.href='/doctor/dashboard'">Back to Dashboard</button>
+                {% endif %}
+                
+                <button class="btn-danger" onclick="window.location.href='/logout'">Logout</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
