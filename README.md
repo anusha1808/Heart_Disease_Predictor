@@ -2,7 +2,7 @@
 
 A full-stack machine learning web application that predicts heart disease risk using 13 clinical parameters, with role-based authentication (Admin/Doctor), real-time predictions, and interactive dashboards. The project demonstrates how ML can assist clinical decision-making in an educational context.
 
-<br>
+---
 
 ## Table of Contents
 - Project Overview
@@ -18,7 +18,7 @@ A full-stack machine learning web application that predicts heart disease risk u
 - Uptime Monitoring
 - Live Deployment Link
 
-<br>
+---
 
 ## Project Overview
 
@@ -31,7 +31,7 @@ Heart disease is a leading cause of death worldwide. Early and accurate risk ass
 
 **Important:** This is an educational demonstration project, not a real medical diagnostic tool.
 
-<br>
+---
 
 ##  Key Features
 
@@ -60,7 +60,7 @@ Heart disease is a leading cause of death worldwide. Early and accurate risk ass
 - Print-ready patient reports
 - Google OAuth 2.0 authentication
 
-<br>
+---
 
 ##  Model Performance
 
@@ -72,7 +72,6 @@ Heart disease is a leading cause of death worldwide. Early and accurate risk ass
 | F1-Score | 87.9% |
 | ROC-AUC | 0.916 |
 
-<br>
 
 **Models Compared:**
 
@@ -82,7 +81,7 @@ Heart disease is a leading cause of death worldwide. Early and accurate risk ass
 | Random Forest | 85.9% |
 | SVM | 82.6% |
 
-<br>
+---
 
 ##  Project Structure
 
@@ -116,7 +115,7 @@ Heart_Disease_Predictor/
 └── .env 
 
 ```
-<br>
+---
 
 ##  Machine Learning Pipeline
 
@@ -144,7 +143,7 @@ The ML pipeline follows a structured sequence:
 ### 5. Model Export
 - Best model saved as `model.pkl` for API serving
 
-<br>
+---
 
 ##  Frontend & Dashboard
 
@@ -157,7 +156,7 @@ The frontend is built using Flask templates with Chart.js visualizations and con
 - **Predictions Table:** Recent predictions with doctor names
 - **Patient Reports:** Full clinical data with print support
 
-<br>
+---
 
 ##  Getting Started
 
@@ -166,8 +165,6 @@ The frontend is built using Flask templates with Chart.js visualizations and con
 - Python 3.11 or higher
 - pip package manager
 - Firebase project (for authentication & database)
-
-<br>
 
 ### Installation
 
@@ -195,7 +192,7 @@ Run the application
 python app.py
 ```
 
-<br>
+---
 
 ### Firebase Setup
 - Create a project on Firebase Console
@@ -204,7 +201,7 @@ python app.py
 - Generate Service Account Key
 - Create .env file with your Firebase config
 
-<br>
+---
 
 ## API Documentation
 
@@ -246,7 +243,7 @@ Response:
 }
 ```
 
-<br>
+---
 
 ## Technologies Used
 
@@ -259,7 +256,6 @@ Response:
 | scikit-learn | 1.3.0 | ML algorithms |
 | Gunicorn | 21.2.0 | Production WSGI server |
 
-<br>
 
 ### Database & Authentication
 
@@ -268,7 +264,6 @@ Response:
 | Firebase Firestore | Cloud database |
 | Firebase Auth | Google OAuth 2.0 |
 
-<br>
 
 ### Frontend Stack
 
@@ -278,7 +273,6 @@ Response:
 | CSS3 | Styling |
 | Chart.js | Interactive visualizations |
 
-<br>
 
 ### DevOps & Monitoring
 
@@ -289,7 +283,7 @@ Response:
 | CI/CD | Automatic deployment |
 | UptimeRobot | 5-min interval monitoring |
 
-<br>
+---
 
 ### Deployment
 Deploy on Render
@@ -305,12 +299,12 @@ Deploy on Render
 4. Add environment variables
 5. Click **Create Web Service**
 
-<br>
+---
 
 ### Uptime Monitoring
 UptimeRobot configured to ping `/api/health` every 5 minutes, eliminating cold starts.
 
-<br>
+---
 
 ### Live Deployment Link
 Web Application	- [Heart Disease Prediction System](https://heart-disease-predictor-1-cs1n.onrender.com)
