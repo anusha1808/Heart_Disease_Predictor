@@ -15,6 +15,8 @@ A full-stack machine learning web application that predicts heart disease risk u
 - Technologies Used
 - API Documentation
 - Deployment
+- Uptime Monitoring
+- Live Deployment Link
 
 <br>
 
@@ -292,14 +294,23 @@ Response:
 ### Deployment
 Deploy on Render
 
-- Create Web Service on Render
-- Configure:
-  - Build Command	pip install -r requirements.txt && python train.py
-  - Start Command	python app.py
-  - Add environment variables
-  - Click Create Web Service
+1. Push code to GitHub
+2. Create Web Service on [Render](https://render.com)
+3. Configure:
+
+| Setting | Value |
+|---------|-------|
+| Build Command | `pip install -r requirements.txt && python train.py` |
+| Start Command | `gunicorn app:app --bind 0.0.0.0:$PORT` |
+4. Add environment variables
+5. Click **Create Web Service**
 
 <br>
 
 ### Uptime Monitoring
-UptimeRobot configured to ping /api/health every 5 minutes, eliminating cold starts.
+UptimeRobot configured to ping `/api/health` every 5 minutes, eliminating cold starts.
+
+<br>
+
+### Live Deployment Link
+Web Application	- [Heart Disease Prediction System](https://heart-disease-predictor-1-cs1n.onrender.com)
