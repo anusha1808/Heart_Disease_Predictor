@@ -22,6 +22,32 @@ USERS = {
     # Add more doctors here
 }
 
+DEMO_ACCESS = {
+    'demo_admin': {'password': '12345', 'role': 'admin', 'name': 'Demo Admin'},
+    'demo_doctor': {'password': '12345', 'role': 'doctor', 'name': 'Demo Doctor'},
+}
+
+@admin_bp.route('/demo/login', methods=['GET', 'POST'])
+def demo_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if username in DEMO_ACCESS and DEMO_ACCESS[username]['password'] == password:
+            session['admin_logged_in'] = True
+            session['admin_email'] = f"{username}@demo.com"
+            session['user_role'] = DEMO_ACCESS[username]['role']
+            session['user_name'] = DEMO_ACCESS[username]['name']
+            
+            if DEMO_ACCESS[username]['role'] == 'admin':
+                return redirect('/admin/dashboard')
+            else:
+                return redirect('/doctor/dashboard')
+        else:
+            return "Invalid credentials", 401
+    
+    return render_template('demo_login.html')
+
 def get_user_role(email):
     """Get role for a user"""
     if email in USERS:
@@ -225,7 +251,7 @@ def export_csv():
 @admin_bp.route('/logout')
 def logout():
     session.clear()
-    return redirect('/login')
+    return redirect('/')
 
 @admin_bp.route('/admin/patient/<patient_id>')
 @doctor_required

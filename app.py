@@ -165,8 +165,13 @@ def validate_input(data):
     
     return True, "Valid"
 
+@app.route('/')
+def landing():
+    """Landing page with login options"""
+    return render_template('landing.html')
+
 # Web route
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/predictor', methods=['GET', 'POST'])
 def home():
 
     if not session.get('admin_logged_in'):
