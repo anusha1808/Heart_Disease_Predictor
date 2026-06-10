@@ -118,7 +118,7 @@ def google_auth():
             session['user_name'] = custom_name
             
             # Redirect based on role
-            return jsonify({'status': 'success', 'redirect': '/'}), 200
+            return jsonify({'status': 'success', 'redirect': '/predictor'}), 200
         else:
             return jsonify({'status': 'error', 'message': f'Email {email} is not authorized'}), 403
         
